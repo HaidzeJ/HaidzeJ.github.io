@@ -1,0 +1,80 @@
+---
+/*
+  The page shell every page uses: <head> metadata, skip link, header,
+  main content slot and footer. A page passes its own title and description.
+*/
+import '../styles/global.css';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+
+// Full absolute URL of this page, built from `site` in astro.config.mjs.
+// Search engines and link previews need absolute URLs.
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Open Graph: controls the preview card when the link is shared
+         on LinkedIn, Slack, etc. An og:image gets added later. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+
+    <!-- Browser UI color (mobile address bar) for each scheme. -->
+    <meta name="theme-color" content="#fbfaf8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#141413" media="(prefers-color-scheme: dark)" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <!-- First focusable element: lets keyboard users jump past the nav. -->
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SiteHeader />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <SiteFooter />
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: absolute;
+    top: var(--space-2);
+    left: var(--space-2);
+    z-index: 10;
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-text);
+    color: var(--color-bg);
+    border-radius: var(--radius);
+    /* Moved off-screen until it receives keyboard focus. */
+    transform: translateY(-200%);
+  }
+
+  .skip-link:focus {
+    transform: none;
+  }
+
+  /* tabindex="-1" lets the skip link move focus to <main>,
+     but <main> itself shouldn't show a focus ring. */
+  main:focus {
+    outline: none;
+  }
+</style>

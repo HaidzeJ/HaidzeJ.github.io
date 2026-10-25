@@ -1,16 +1,65 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ReleaseEntry from '../components/ReleaseEntry.astro';
+import { releases } from '../data/releases';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout
+  title="Jeremiah Haidze · Front-end developer"
+  description="Front-end developer with hands-on experience in Shopify, Liquid and Vue. My work history, written as a changelog."
+>
+  <section class="intro container" aria-labelledby="intro-heading">
+    <h1 id="intro-heading">Jeremiah Haidze</h1>
+    <p class="lede">
+      Front-end developer. I’ve spent most of my career building and shipping
+      e-commerce sites, most recently on Shopify and Vue.
+    </p>
+    <p class="hint">
+      Below is my work history, written as a changelog: each role or project is a release.
+    </p>
+  </section>
+
+  <section class="container" id="changelog" aria-labelledby="changelog-heading">
+    <h2 id="changelog-heading">Changelog</h2>
+    <ol class="timeline">
+      {releases.map((release) => (
+        <li><ReleaseEntry release={release} /></li>
+      ))}
+    </ol>
+  </section>
+</BaseLayout>
+
+<style>
+  .intro {
+    padding-block: var(--space-6) var(--space-5);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: var(--text-xl);
+  }
+
+  .lede {
+    margin-top: var(--space-3);
+    font-size: var(--text-lg);
+    max-width: 36ch;
+  }
+
+  .hint {
+    color: var(--color-muted);
+  }
+
+  h2 {
+    font-size: var(--text-lg);
+  }
+
+  /* The vertical timeline line. Each release draws its own dot on it. */
+  .timeline {
+    display: grid;
+    gap: var(--space-5);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+    border-left: 2px solid var(--color-border);
+  }
+</style>

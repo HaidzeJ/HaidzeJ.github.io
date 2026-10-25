@@ -1,0 +1,97 @@
+/*
+  Global styles: design tokens, base element styles, and a few shared helpers.
+  Component-specific styles live inside each .astro component instead.
+*/
+
+:root {
+  /* Tells the browser this site supports both schemes. It also styles
+     built-in UI (scrollbars, form controls) and makes light-dark() work. */
+  color-scheme: light dark;
+
+  /* Colors: light-dark(<light value>, <dark value>) picks one based on the
+     visitor's OS setting. Every text/background pair passes WCAG AA (4.5:1). */
+  --color-bg: light-dark(#fbfaf8, #141413);
+  --color-surface: light-dark(#ffffff, #1d1d1b);
+  --color-text: light-dark(#1c1b19, #ecebe7);
+  --color-muted: light-dark(#5c5a55, #a3a19b);
+  --color-border: light-dark(#dedbd4, #34332f);
+  --color-accent: light-dark(#0b6e4f, #5fd3a4);
+
+  /* System fonts: zero download, so nothing slows the first paint. */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+
+  /* Spacing and type scale. clamp() grows sizes smoothly with the viewport. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.5rem;
+  --space-6: 4rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: clamp(1.75rem, 1.2rem + 2.5vw, 2.75rem);
+
+  --content-width: 44rem;
+  --radius: 6px;
+}
+
+/* Base reset: predictable sizing and no surprise margins. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--color-accent);
+  text-underline-offset: 0.2em;
+}
+
+/* One focus style for everything, shown only for keyboard navigation. */
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+/* Smooth scrolling for in-page links, only if the visitor hasn't asked
+   their OS to reduce motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Centered content column used by every section. */
+.container {
+  width: min(100% - 2 * var(--space-3), var(--content-width));
+  margin-inline: auto;
+}
