@@ -6,6 +6,7 @@
 import '../styles/global.css';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import Spotlight from '../components/Spotlight.astro';
 
 interface Props {
   title: string;
@@ -17,6 +18,7 @@ const { title, description } = Astro.props;
 // Full absolute URL of this page, built from `site` in astro.config.mjs.
 // Search engines and link previews need absolute URLs.
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+const ogImageUrl = new URL('/og-image.png', Astro.site);
 ---
 
 <!doctype html>
@@ -28,12 +30,20 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
 
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
     <!-- Open Graph: controls the preview card when the link is shared
-         on LinkedIn, Slack, etc. An og:image gets added later. -->
+         on LinkedIn, Slack, etc. 1200x630 is the size those sites expect. -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Jeremiah Haidze, front-end developer. Work history written as a changelog." />
+    <!-- X/Twitter reads its own tag; this asks for the large image card. -->
+    <meta name="twitter:card" content="summary_large_image" />
 
     <!-- Browser UI color (mobile address bar) for each scheme. -->
     <meta name="theme-color" content="#fbfaf8" media="(prefers-color-scheme: light)" />
@@ -46,11 +56,18 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
   <body>
     <!-- First focusable element: lets keyboard users jump past the nav. -->
     <a class="skip-link" href="#main">Skip to content</a>
-    <SiteHeader />
-    <main id="main" tabindex="-1">
-      <slot />
-    </main>
-    <SiteFooter />
+    <Spotlight />
+    <!-- Two columns on wide screens: sticky header on the left,
+         main content and footer scrolling on the right. -->
+    <div class="page container">
+      <SiteHeader />
+      <div class="content">
+        <main id="main" tabindex="-1">
+          <slot />
+        </main>
+        <SiteFooter />
+      </div>
+    </div>
   </body>
 </html>
 
@@ -76,5 +93,23 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
      but <main> itself shouldn't show a focus ring. */
   main:focus {
     outline: none;
+  }
+
+  /* Sits above the spotlight layer (z-index 0) so text stays crisp. */
+  .page {
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (min-width: 64rem) {
+    .page {
+      display: grid;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-6);
+    }
+
+    .content {
+      padding-top: var(--space-6);
+    }
   }
 </style>

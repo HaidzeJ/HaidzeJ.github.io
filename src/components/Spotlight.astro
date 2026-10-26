@@ -1,0 +1,79 @@
+---
+/*
+  The cursor effects, in one small script:
+  1. Spotlight: a soft accent-colored glow that follows the mouse across the
+     whole page (inspired by brittanychiang.com).
+  2. Timeline glow: while the mouse is over the changelog, a bright segment
+     slides along the timeline line to follow it, like scrubbing through history.
+
+  The script only stores the mouse position in CSS custom properties
+  (--x, --y, --glow-y). All the drawing is plain CSS.
+  It only runs on devices with a real mouse, so touch screens skip it.
+*/
+---
+
+<div class="spotlight" aria-hidden="true"></div>
+
+<script>
+  const hasMouse = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  if (hasMouse) {
+    const root = document.documentElement;
+    const timeline = document.querySelector<HTMLElement>('.timeline');
+    let frame = 0;
+
+    window.addEventListener('pointermove', (event) => {
+      // requestAnimationFrame: update at most once per screen refresh,
+      // even though pointermove can fire much more often than that.
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        root.style.setProperty('--x', `${event.clientX}px`);
+        root.style.setProperty('--y', `${event.clientY}px`);
+
+        if (timeline) {
+          // The glow is on whenever the mouse is anywhere to the right of the
+          // timeline line, within the list's height (not only over an entry).
+          const rect = timeline.getBoundingClientRect();
+          const isRightOfLine =
+            event.clientX >= rect.left &&
+            event.clientY >= rect.top &&
+            event.clientY <= rect.bottom;
+          timeline.classList.toggle('is-scrubbing', isRightOfLine);
+          // Mouse position relative to the top of the timeline list.
+          timeline.style.setProperty('--glow-y', `${event.clientY - rect.top}px`);
+        }
+      });
+    });
+
+    // Turn the glow off when the mouse leaves the browser window.
+    document.addEventListener('pointerleave', () => {
+      timeline?.classList.remove('is-scrubbing');
+    });
+
+    root.classList.add('has-spotlight');
+  }
+</script>
+
+<style>
+  .spotlight {
+    display: none;
+  }
+
+  /* :global() because the class is added to <html> by the script,
+     outside this component. */
+  :global(.has-spotlight) .spotlight {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    /* A smaller glow with a small solid core that fades out gradually all
+       the way to its edge, so there's no visible rim. */
+    background: radial-gradient(
+      450px circle at var(--x, -1000px) var(--y, -1000px),
+      var(--color-glow) 0%,
+      var(--color-glow) 12%,
+      transparent 100%
+    );
+  }
+</style>
