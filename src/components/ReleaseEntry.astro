@@ -1,11 +1,14 @@
 ---
 /*
   One changelog entry, in one of two shapes:
-  - featured: a card with an image (or placeholder), summary, stack chips,
+  - featured: a card with an image (or placeholder), summary, stack chips
     and a "Details" toggle for Shipped / My role / Notes.
-  - compact: a single row (version, title, dates) that expands on click.
-  Both use <details>, which opens and closes without any JavaScript and
-  works with the keyboard and screen readers out of the box.
+  - compact: a single row (version, title, dates) with a chevron toggle.
+  Both are an <article> with an <h3>, so screen-reader users can jump
+  between entries by heading. The expandable part is a <details> element,
+  which opens and closes without JavaScript and works with the keyboard.
+  The small script below adds one extra: clicking anywhere on the card
+  toggles it too.
 */
 import { Image } from 'astro:assets';
 import type { Release } from '../data/releases';
@@ -43,6 +46,8 @@ const hasDetails = Boolean(shipped || role || notes);
     <header>
       <h3>
         <span class="version">{version}</span>
+        <!-- Read aloud as "v2.0: Title" instead of "v2.0Title". -->
+        <span class="visually-hidden">: </span>
         <span class="title">{title}</span>
       </h3>
       <p class="dates">{dates}</p>
@@ -50,11 +55,11 @@ const hasDetails = Boolean(shipped || role || notes);
 
     <p class="summary">{summary}</p>
     <ul class="stack" aria-label="Stack">{stack.map((tool) => <li>{tool}</li>)}</ul>
-    {link && <a class="out-link" href={link.href}>{link.label}<span aria-hidden="true"> ↗</span></a>}
+    {link && <a class="out-link" href={link.href}>{link.label}<span aria-hidden="true">↗</span></a>}
 
     {hasDetails && (
       <details>
-        <summary>Details</summary>
+        <summary>Details<span class="visually-hidden">: {title}</span></summary>
         <dl>
           {shipped && (
             <>
@@ -79,16 +84,23 @@ const hasDetails = Boolean(shipped || role || notes);
     )}
   </article>
 ) : (
-  <details class="release compact">
-    <summary>
-      <span class="version">{version}</span>
-      <span class="title">{title}</span>
-      <span class="dates">{dates}</span>
-    </summary>
-    <div class="compact-body">
+  <article class="release compact">
+    <header>
+      <h3>
+        <span class="version">{version}</span>
+        <!-- Read aloud as "v2.0: Title" instead of "v2.0Title". -->
+        <span class="visually-hidden">: </span>
+        <span class="title">{title}</span>
+      </h3>
+      <p class="dates">{dates}</p>
+    </header>
+    <details>
+      <!-- Shown as a chevron in the row's top-right corner. The hidden text
+           gives it a name screen readers can announce. -->
+      <summary><span class="visually-hidden">Details: {title}</span></summary>
       <p class="summary">{summary}</p>
       <ul class="stack" aria-label="Stack">{stack.map((tool) => <li>{tool}</li>)}</ul>
-      {link && <a class="out-link" href={link.href}>{link.label}<span aria-hidden="true"> ↗</span></a>}
+      {link && <a class="out-link" href={link.href}>{link.label}<span aria-hidden="true">↗</span></a>}
       {(role || notes) && (
         <dl>
           {role && (
@@ -105,14 +117,48 @@ const hasDetails = Boolean(shipped || role || notes);
           )}
         </dl>
       )}
-    </div>
-  </details>
+    </details>
+  </article>
 )}
+
+<script>
+  /*
+    Click anywhere on a card to open or close it. The <summary> stays the real
+    control for keyboard and screen-reader users; this only widens the click
+    area for mouse and touch. Astro bundles this script once, however many
+    entries are on the page.
+  */
+  for (const card of document.querySelectorAll<HTMLElement>('.release')) {
+    const details = card.querySelector('details');
+    if (!details) continue;
+
+    card.classList.add('is-clickable');
+    card.addEventListener('click', (event) => {
+      const target = event.target as Element;
+      // Links and the summary already do their own thing.
+      if (target.closest('a, summary')) return;
+      // Don't toggle when someone is selecting text to copy it.
+      if (window.getSelection()?.toString()) return;
+      details.open = !details.open;
+    });
+  }
+</script>
 
 <style>
   .release {
+    /* One place to set the card's inner padding, the gap between the
+       timeline line and the card, and the height of the version tag.
+       The title's first line uses the same height, which is what keeps the
+       tag and title vertically centered with each other at any font size. */
+    --pad-x: var(--space-3);
+    --pad-y: var(--space-3);
+    --indent: var(--space-3);
+    --tag-height: 1.5rem;
+    --dot: 0.75rem;
+
     position: relative;
-    margin-left: var(--space-4);
+    margin-left: var(--indent);
+    padding: var(--pad-y) var(--pad-x);
     border: 1px solid transparent;
     border-radius: calc(var(--radius) * 2);
     transition:
@@ -121,14 +167,40 @@ const hasDetails = Boolean(shipped || role || notes);
       box-shadow 200ms ease;
   }
 
-  /* The timeline dot, centered on the vertical line drawn by the parent list. */
+  .compact {
+    --pad-y: var(--space-2);
+    --dot: 0.625rem;
+  }
+
+  @media (min-width: 40rem) {
+    .release {
+      --pad-x: var(--space-4);
+      --indent: var(--space-4);
+    }
+
+    .featured {
+      --pad-y: var(--space-4);
+    }
+
+    .compact {
+      --pad-y: var(--space-3);
+    }
+  }
+
+  .is-clickable {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* The timeline dot, centered on the 2px line drawn by the parent list
+     (the line's center is 1px left of the card's margin edge). */
   .release::before {
     content: '';
     position: absolute;
-    left: calc(-1 * var(--space-4) - 0.375rem - 2px);
-    top: 1.35rem;
-    width: 0.75rem;
-    height: 0.75rem;
+    left: calc(-1 * var(--indent) - 1px - var(--dot) / 2);
+    top: calc(var(--pad-y) + var(--tag-height) / 2 - var(--dot) / 2);
+    width: var(--dot);
+    height: var(--dot);
     border-radius: 50%;
     background: var(--color-bg);
     border: 2px solid var(--color-accent);
@@ -138,29 +210,55 @@ const hasDetails = Boolean(shipped || role || notes);
       transform 200ms ease;
   }
 
-  /* Hover (and keyboard focus inside) lifts the card and lights its dot. */
-  .release:hover,
-  .release:focus-within {
+  /* Featured cards start with an image, so their dot lines up with its top. */
+  .featured::before {
+    top: calc(var(--pad-y) + 0.25rem);
+  }
+
+  /* Raised state: a card is lifted while it's open, while it has keyboard
+     focus, and (only on devices with a real mouse) while it's hovered.
+     Hover is limited to mouse devices because a tap on a phone "sticks"
+     as hover until you tap somewhere else. */
+  .release:has(details[open]),
+  .release:has(:focus-visible) {
     background: var(--color-surface);
     border-color: var(--color-border);
     box-shadow: var(--shadow);
   }
 
-  .release:hover::before,
-  .release:focus-within::before {
+  .release:has(details[open])::before,
+  .release:has(:focus-visible)::before {
     background: var(--color-accent);
     box-shadow: 0 0 0 6px var(--color-glow);
-    transform: scale(1.15);
   }
 
-  .featured {
-    padding: var(--space-3);
+  @media (hover: hover) and (pointer: fine) {
+    .release:hover {
+      background: var(--color-surface);
+      border-color: var(--color-border);
+      box-shadow: var(--shadow);
+    }
+
+    .release:hover::before {
+      background: var(--color-accent);
+      box-shadow: 0 0 0 6px var(--color-glow);
+      transform: scale(1.15);
+    }
+
+    .release:hover .media img {
+      transform: scale(1.03);
+    }
+
+    .release:hover .version {
+      background: var(--color-accent);
+      color: var(--color-bg);
+    }
   }
 
   /* ---------- Media ---------- */
   .media {
     overflow: hidden;
-    margin-bottom: var(--space-3);
+    margin-bottom: var(--space-4);
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
     aspect-ratio: 16 / 10;
@@ -173,10 +271,6 @@ const hasDetails = Boolean(shipped || role || notes);
     object-fit: cover;
     object-position: top;
     transition: transform 400ms ease;
-  }
-
-  .release:hover .media img {
-    transform: scale(1.03);
   }
 
   .media.grid {
@@ -210,23 +304,55 @@ const hasDetails = Boolean(shipped || role || notes);
   }
 
   /* ---------- Heading ---------- */
+  /* Phones: the tag sits on its own line above the title, like a label.
+     A title that wraps to two lines next to a tag never lines up cleanly,
+     so on narrow screens they don't share a line at all. */
   h3 {
     display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--space-2) var(--space-3);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
     margin: 0;
-    font-size: var(--text-lg);
+    font-size: var(--text-md);
+    line-height: 1.3;
+  }
+
+  .compact h3 {
+    font-size: var(--text-base);
+    font-weight: 600;
+  }
+
+  /* Wider screens: tag and title side by side. flex-start + a tag exactly
+     one title line tall keeps the tag centered on the title's first line. */
+  @media (min-width: 40rem) {
+    h3 {
+      flex-direction: row;
+      gap: var(--space-3);
+      font-size: var(--text-lg);
+      line-height: var(--tag-height);
+    }
+
+    .compact h3 {
+      font-size: var(--text-base);
+    }
+  }
+
+  .title {
+    min-width: 0;
   }
 
   /* Version tag styled like a git tag. It fills in on hover. */
   .version {
     flex: none;
+    display: inline-flex;
+    align-items: center;
+    height: var(--tag-height);
+    padding-inline: 0.5em;
     font-family: var(--font-mono);
     font-size: var(--text-sm);
     font-weight: 600;
+    line-height: 1;
     color: var(--color-accent);
-    padding: 0.1em 0.5em;
     border: 1px solid currentColor;
     border-radius: var(--radius);
     transition:
@@ -234,8 +360,7 @@ const hasDetails = Boolean(shipped || role || notes);
       color 200ms ease;
   }
 
-  .release:hover .version,
-  .release:focus-within .version {
+  .release:has(:focus-visible) .version {
     background: var(--color-accent);
     color: var(--color-bg);
   }
@@ -245,10 +370,30 @@ const hasDetails = Boolean(shipped || role || notes);
     color: var(--color-muted);
     font-family: var(--font-mono);
     font-size: var(--text-sm);
+    line-height: var(--tag-height);
+  }
+
+  /* Compact rows: dates sit at the right end of the row when there's room,
+     and wrap under the title on narrow screens. The right padding leaves
+     space for the chevron. */
+  .compact header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0 var(--space-3);
+    padding-right: var(--space-5);
+  }
+
+  .compact header h3 {
+    flex: 1 1 18rem;
+  }
+
+  .compact header .dates {
+    margin: 0;
   }
 
   .summary {
-    margin: var(--space-2) 0 0;
+    margin: var(--space-3) 0 0;
   }
 
   /* ---------- Stack chips ---------- */
@@ -283,8 +428,11 @@ const hasDetails = Boolean(shipped || role || notes);
     text-decoration: underline;
   }
 
+  /* inline-block (needed for the nudge) drops a leading space, so the gap
+     before the arrow is a margin instead. */
   .out-link span {
     display: inline-block;
+    margin-left: 0.2em;
     transition: transform 200ms ease;
   }
 
@@ -293,12 +441,12 @@ const hasDetails = Boolean(shipped || role || notes);
   }
 
   /* ---------- Details toggle ---------- */
-  details summary {
+  summary {
     cursor: pointer;
     list-style: none;
   }
 
-  details summary::-webkit-details-marker {
+  summary::-webkit-details-marker {
     display: none;
   }
 
@@ -306,10 +454,13 @@ const hasDetails = Boolean(shipped || role || notes);
     margin-top: var(--space-3);
   }
 
+  /* min-height keeps the toggle at least 24px tall, the WCAG minimum
+     target size. */
   .featured summary {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
+    min-height: 1.5rem;
     font-size: var(--text-sm);
     font-weight: 600;
     color: var(--color-muted);
@@ -319,20 +470,60 @@ const hasDetails = Boolean(shipped || role || notes);
     color: var(--color-text);
   }
 
-  /* A chevron drawn with borders; it rotates when the toggle opens. */
-  .featured summary::after,
-  .compact summary::after {
+  /* Compact rows: the summary is a 40px square in the top-right corner,
+     centered on the title line. Its chevron is the only visible part. */
+  .compact summary {
+    position: absolute;
+    top: calc(var(--pad-y) + (var(--tag-height) - var(--space-5)) / 2);
+    right: calc(var(--pad-x) - var(--space-3));
+    display: grid;
+    place-items: center;
+    width: var(--space-5);
+    height: var(--space-5);
+    color: var(--color-muted);
+    border-radius: var(--radius);
+  }
+
+  /* A chevron drawn with borders; it flips when the toggle opens. */
+  summary::after {
     content: '';
     width: 0.45em;
     height: 0.45em;
     border-right: 2px solid currentColor;
     border-bottom: 2px solid currentColor;
-    transform: rotate(45deg) translateY(-25%);
+    transform: translateY(-25%) rotate(45deg);
     transition: transform 200ms ease;
   }
 
+  .compact summary::after {
+    font-size: var(--text-base);
+  }
+
   details[open] > summary::after {
-    transform: rotate(-135deg) translateY(-25%);
+    transform: translateY(25%) rotate(-135deg);
+  }
+
+  /* Smooth open/close. ::details-content is the part of <details> that
+     shows and hides; interpolate-size lets it animate to height: auto.
+     Browsers without support just open instantly. */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (interpolate-size: allow-keywords) {
+      details {
+        interpolate-size: allow-keywords;
+      }
+
+      details::details-content {
+        block-size: 0;
+        overflow: hidden;
+        transition:
+          block-size 250ms ease,
+          content-visibility 250ms allow-discrete;
+      }
+
+      details[open]::details-content {
+        block-size: auto;
+      }
+    }
   }
 
   dl {
@@ -345,7 +536,7 @@ const hasDetails = Boolean(shipped || role || notes);
     font-size: var(--text-sm);
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tracking-label);
   }
 
   dd {
@@ -355,38 +546,6 @@ const hasDetails = Boolean(shipped || role || notes);
   dd ul {
     margin: 0;
     padding-left: 1.2em;
-  }
-
-  /* ---------- Compact rows ---------- */
-  .compact::before {
-    top: 1.05rem;
-    width: 0.6rem;
-    height: 0.6rem;
-    left: calc(-1 * var(--space-4) - 0.3rem - 2px);
-  }
-
-  .compact summary {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-1) var(--space-3);
-    padding: var(--space-2) var(--space-3);
-  }
-
-  .compact .title {
-    font-weight: 600;
-  }
-
-  .compact .dates {
-    margin: 0 0 0 auto;
-  }
-
-  .compact summary::after {
-    color: var(--color-muted);
-  }
-
-  .compact-body {
-    padding: 0 var(--space-3) var(--space-3);
   }
 
   @media (prefers-reduced-motion: reduce) {

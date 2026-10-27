@@ -6,22 +6,20 @@ import { releases } from '../data/releases';
 
 <BaseLayout
   title="Jeremiah Haidze · Front-end developer"
-  description="Front-end developer with hands-on experience in Shopify, Liquid and Vue. My work history, written as a changelog."
+  description="Front-end developer who builds fast, accessible websites and web apps. My work history, written as a changelog."
 >
   <section class="about" id="about" aria-labelledby="about-heading">
     <h2 id="about-heading" class="visually-hidden">About</h2>
     <p>
-      I’ve spent most of my career building and shipping e-commerce sites: more than five
-      years at Lull, from campaign landing pages to a full Shopify migration, then a Vue
-      contract at RYZE Superfoods.
-    </p>
-    <p class="hint">
-      Below is my work history, written as a changelog. Each role or project is a release.
+      I’ve been shipping production websites for more than five years. At Lull, that meant
+      everything from campaign landing pages to a full Shopify migration. Most recently, I
+      refactored a Vue customer portal for RYZE Superfoods. I care about pages that load fast, work for everyone, and are easy for
+      the next developer to change.
     </p>
   </section>
 
   <section id="changelog" aria-labelledby="changelog-heading">
-    <h2 id="changelog-heading">Changelog</h2>
+    <h2 id="changelog-heading" class="section-label">Changelog</h2>
     <ol class="timeline">
       {releases.map((release) => (
         <li><ReleaseEntry release={release} /></li>
@@ -31,26 +29,26 @@ import { releases } from '../data/releases';
 </BaseLayout>
 
 <style>
+  /* A step above body text, but on phones no bigger than the changelog
+     card titles (18px), so the headings still lead. */
   .about {
-    font-size: var(--text-lg);
+    font-size: var(--text-md);
   }
 
+  @media (min-width: 40rem) {
+    .about {
+      font-size: var(--text-lg);
+    }
+  }
+
+  /* About 60 characters per line, inside the 45-75 range that reads best. */
   .about p {
-    margin-top: 0;
+    max-width: 60ch;
+    margin: 0;
   }
 
-  .hint {
-    color: var(--color-muted);
-    font-size: var(--text-base);
-  }
-
-  h2 {
-    margin-top: var(--space-6);
-    font-size: var(--text-sm);
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--color-muted);
+  #changelog-heading {
+    margin: var(--section-gap) 0 0;
   }
 
   /* The vertical timeline line. Each release draws its own dot on it. */
@@ -85,13 +83,17 @@ import { releases } from '../data/releases';
   }
 
   /* While one entry is hovered, fade the others so it stands out.
-     :has() lets the list react to the state of one of its children. */
+     :has() lets the list react to the state of one of its children.
+     Mouse devices only: on a phone a tap counts as hover and sticks, which
+     left the rest of the list dimmed while scrolling. */
   .timeline > li {
     transition: opacity 200ms ease;
   }
 
-  .timeline:has(> li:hover) > li:not(:hover) {
-    opacity: 0.55;
+  @media (hover: hover) and (pointer: fine) {
+    .timeline:has(> li:hover) > li:not(:hover) {
+      opacity: 0.55;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

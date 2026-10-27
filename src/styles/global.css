@@ -9,32 +9,50 @@
   color-scheme: light dark;
 
   /* Colors: light-dark(<light value>, <dark value>) picks one based on the
-     visitor's OS setting. Every text/background pair passes WCAG AA (4.5:1). */
+     visitor's OS setting. Every text/background pair passes WCAG AA (4.5:1),
+     including over the glows and the chip backgrounds at their strongest
+     (checked 2026-10-27; re-check if any of these values change). */
   --color-bg: light-dark(#fbfaf8, #141413);
   --color-surface: light-dark(#ffffff, #1d1d1b);
   --color-text: light-dark(#1c1b19, #ecebe7);
-  --color-muted: light-dark(#5c5a55, #a3a19b);
+  --color-muted: light-dark(#5c5a55, #aeaca7);
   --color-border: light-dark(#dedbd4, #34332f);
-  --color-accent: light-dark(#0b6e4f, #5fd3a4);
+  --color-accent: light-dark(#0a6448, #64d4a7);
   /* Translucent accent for the cursor spotlight, chips and hover glows. */
-  --color-glow: light-dark(rgb(11 110 79 / 0.09), rgb(95 211 164 / 0.11));  --shadow: light-dark(0 8px 24px rgb(28 27 25 / 0.08), 0 8px 24px rgb(0 0 0 / 0.35));
+  --color-glow: light-dark(rgb(11 110 79 / 0.09), rgb(95 211 164 / 0.11));
+  /* Background glow on touch screens (Spotlight.astro). Spread wide, so it
+     can be a little stronger than --color-glow. Kept low enough that text
+     passes WCAG AA even where the two glows overlap. */
+  --color-ambient: light-dark(rgb(11 110 79 / 0.1), rgb(95 211 164 / 0.14));
+  --shadow: light-dark(0 8px 24px rgb(28 27 25 / 0.08), 0 8px 24px rgb(0 0 0 / 0.35));
 
   /* System fonts: zero download, so nothing slows the first paint. */
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
 
-  /* Spacing and type scale. clamp() grows sizes smoothly with the viewport. */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 1rem;
-  --space-4: 1.5rem;
-  --space-5: 2.5rem;
-  --space-6: 4rem;
+  /* Spacing scale on an 8px grid (4px for the smallest step), the same
+     base most design systems use (Material, Apple, IBM Carbon).
+     clamp() grows sizes smoothly with the viewport. */
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 1rem; /* 16px */
+  --space-4: 1.5rem; /* 24px */
+  --space-5: 2.5rem; /* 40px */
+  --space-6: 4rem; /* 64px */
+  --space-7: 6rem; /* 96px */
+  /* Page side margin: 24px on phones, up to 48px on wide screens. */
+  --gutter: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+  /* Space between major sections: 64px on phones, up to 96px. */
+  --section-gap: clamp(4rem, 3rem + 4vw, 6rem);
   --text-sm: 0.875rem;
   --text-base: 1rem;
+  --text-md: 1.125rem;
   --text-lg: 1.25rem;
   --text-xl: clamp(1.75rem, 1.2rem + 2.5vw, 2.75rem);
   --text-display: clamp(2.5rem, 1.6rem + 3.5vw, 4rem);
+
+  /* Letter spacing for small uppercase labels. */
+  --tracking-label: 0.1em;
 
   --content-width: 76rem;
   --radius: 6px;
@@ -95,8 +113,19 @@ code {
 
 /* Centered content column used by every section. */
 .container {
-  width: min(100% - 2 * var(--space-3), var(--content-width));
+  width: min(100% - 2 * var(--gutter), var(--content-width));
   margin-inline: auto;
+}
+
+/* Small uppercase heading shared by the page's sections
+   (Changelog, Contact), so they always match. Uppercase labels elsewhere
+   (nav links, card details) use the same tracking. */
+.section-label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-muted);
 }
 
 /* Hides content visually but keeps it for screen readers

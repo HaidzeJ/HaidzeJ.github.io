@@ -1,0 +1,31 @@
+---
+/*
+  GitHub Pages serves this page (built as 404.html) for any URL that
+  doesn't exist, instead of its own generic error page.
+*/
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page not found · Jeremiah Haidze" description="This page doesn't exist." noindex>
+  <section class="not-found" aria-labelledby="not-found-heading">
+    <p class="code">404</p>
+    <h2 id="not-found-heading">This page doesn’t exist.</h2>
+    <p>It may have moved, or the link has a typo.</p>
+    <p><a href="/">Back to the changelog</a></p>
+  </section>
+</BaseLayout>
+
+<style>
+  .code {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+
+  h2 {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-xl);
+  }
+</style>

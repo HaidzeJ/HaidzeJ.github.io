@@ -154,7 +154,15 @@ export const releases: Release[] = [
     summary: 'Promotions, sale campaigns and product launches: most of my regular work, shipped through pull requests, preview environments and QA.',
     images: [{ src: lullHomeEvergreen, alt: 'The Lull homepage: “Meet the Mattress of Your Dreams” above a stack of Lull mattresses, October 2023.' }],
     stack: ['Bootstrap', 'Sass', 'Nunjucks', 'Node.js', 'Koa', 'Docker', 'Shopify', 'Liquid', 'Git', 'GitHub'],
-    role: 'Each change went through a pull request, review in a preview environment, QA, deploy and a retest in production.',
+    shipped: [
+      'New product sections and promotional sections.',
+      'Seasonal changes across the site.',
+      'Reusable components and processes where they paid off, such as a repeatable setup for rotating sales.',
+      'Page speed optimizations.',
+      'Code cleanup to make the structure easier to work in.',
+    ],
+    role: 'Front-end developer on the WebOps/Engineering team, building and maintaining features and campaigns week to week.',
+    notes: ['Each change went through a pull request, review in a preview environment, QA, deploy and a retest in production.'],
   },
   {
     version: 'v2.0',
@@ -167,7 +175,7 @@ export const releases: Release[] = [
     version: 'v1.0',
     title: 'Freelance',
     dates: '2016–2018',
-    summary: 'A few basic WordPress sites, plus small content and CSS edits on Shopify and Kentico sites. Solo, entry-level work.',
+    summary: 'Built a few WordPress sites with a designer, turning their designs into working pages, plus small content and CSS edits on Shopify and Kentico sites.',
     stack: ['WordPress', 'Shopify', 'Kentico', 'CSS', 'Bootstrap'],
   },
 ];

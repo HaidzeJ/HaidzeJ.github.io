@@ -5,9 +5,10 @@
   On phones it's a normal header at the top.
 */
 const links = [
-  { href: '#about', label: 'About' },
-  { href: '#changelog', label: 'Changelog' },
-  { href: '#contact', label: 'Contact' },
+  // Root-relative ("/#about") so the links also work from the 404 page.
+  { href: '/#about', label: 'About' },
+  { href: '/#changelog', label: 'Changelog' },
+  { href: '/#contact', label: 'Contact' },
 ];
 ---
 
@@ -15,7 +16,7 @@ const links = [
   <div>
     <h1 class="name"><a href="/">Jeremiah Haidze</a></h1>
     <p class="role">Front-end developer</p>
-    <p class="tagline">I build and ship e-commerce front ends, most recently on Shopify and Vue.</p>
+    <p class="tagline">I build fast, accessible websites and web apps.</p>
 
     <nav aria-label="Sections">
       <ul>
@@ -117,7 +118,7 @@ const links = [
     color: var(--color-muted);
     font-size: var(--text-sm);
     font-weight: 600;
-    letter-spacing: 0.1em;
+    letter-spacing: var(--tracking-label);
     text-transform: uppercase;
     text-decoration: none;
   }
@@ -166,7 +167,7 @@ const links = [
       position: sticky;
       top: 0;
       height: 100vh;
-      padding-block: var(--space-6);
+      padding-block: var(--space-7);
     }
 
     nav {

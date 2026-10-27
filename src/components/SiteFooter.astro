@@ -1,40 +1,188 @@
 ---
-/* Footer doubles as the contact section (the nav's "Contact" link). */
+/*
+  Footer doubles as the contact section (the nav's "Contact" link).
+  Top part: an invitation, the email as the main action, then profiles.
+  Bottom line: details about the site itself, kept small and separate.
+*/
 const year = new Date().getFullYear();
+const email = 'haidzejeremiah@gmail.com';
 ---
 
 <footer class="site-footer" id="contact">
-  <h2>Contact</h2>
+  <h2 class="section-label">Contact</h2>
+  <p class="intro">I’m looking for my next developer role. Email is the best way to reach me.</p>
+
+  <div class="email-row">
+    <a class="email" href={`mailto:${email}`}>{email}</a>
+    <!-- Hidden until the script confirms the browser can copy, so it
+         never shows as a button that does nothing. -->
+    <button type="button" class="copy" data-copy={email} hidden>Copy</button>
+    <!-- role="status": screen readers announce text put in here. -->
+    <span class="visually-hidden" role="status"></span>
+  </div>
+
   <ul class="links">
-    <li><a href="https://www.linkedin.com/in/jhaidze">LinkedIn</a></li>
-    <li><a href="https://github.com/HaidzeJ">GitHub</a></li>
-    <li><a href="https://github.com/HaidzeJ/HaidzeJ.github.io">Source for this site</a></li>
+    <li><a href="https://www.linkedin.com/in/jhaidze">LinkedIn<span aria-hidden="true">↗</span></a></li>
+    <li><a href="https://github.com/HaidzeJ">GitHub<span aria-hidden="true">↗</span></a></li>
   </ul>
-  <p class="copyright">© {year} Jeremiah Haidze</p>
+
+  <p class="meta">
+    © {year} Jeremiah Haidze · <a href="https://github.com/HaidzeJ/HaidzeJ.github.io">View source</a>
+  </p>
 </footer>
+
+<script>
+  /* Copy button: copies the email address and confirms it for a moment. */
+  const button = document.querySelector<HTMLButtonElement>('.site-footer .copy');
+  const status = document.querySelector<HTMLElement>('.site-footer [role="status"]');
+
+  if (button && status && navigator.clipboard) {
+    button.hidden = false;
+    let timer = 0;
+
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.copy ?? '');
+        button.textContent = 'Copied';
+        status.textContent = 'Email address copied';
+      } catch {
+        button.textContent = 'Couldn’t copy';
+        status.textContent = 'Couldn’t copy the email address';
+      }
+      clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        button.textContent = 'Copy';
+        status.textContent = '';
+      }, 2000);
+    });
+  }
+</script>
 
 <style>
   .site-footer {
-    margin-top: var(--space-6);
-    padding-block: var(--space-5);
-    border-top: 1px solid var(--color-border);
+    margin-top: var(--section-gap);
+    padding-bottom: var(--space-5);
   }
 
-  h2 {
+  .section-label {
     margin-top: 0;
-    font-size: var(--text-lg);
   }
 
+  /* Same gap below the label as the Changelog heading has. */
+  .intro {
+    max-width: 60ch;
+    margin: var(--space-4) 0 0;
+  }
+
+  /* ---------- Email: the main action ---------- */
+  .email-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  .email {
+    color: var(--color-text);
+    /* Scales with the screen so the address and the Copy button share one
+       line on phones from about 360px wide up. Tops out at the About text's
+       size (20px), so it matches the page on wide and landscape screens. */
+    font-size: clamp(1.0625rem, 6.5vw - 0.375rem, var(--text-lg));
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.25em;
+    /* Lets the address break on very narrow phones instead of overflowing. */
+    overflow-wrap: anywhere;
+    transition: color 200ms ease;
+  }
+
+  .email:hover {
+    color: var(--color-accent);
+  }
+
+  /* Styled like the version tags, so it reads as part of the same system. */
+  .copy {
+    min-height: 2rem;
+    padding: 0 0.75em;
+    font: inherit;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-accent);
+    background: transparent;
+    border: 1px solid currentColor;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+
+  .copy:hover {
+    background: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  /* ---------- Profiles: same style as the header's links ---------- */
   .links {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2) var(--space-4);
+    margin: var(--space-4) 0 0;
     padding: 0;
     list-style: none;
   }
 
-  .copyright {
+  .links a {
+    color: var(--color-muted);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 200ms ease;
+  }
+
+  .links a:hover {
+    color: var(--color-accent);
+  }
+
+  /* inline-block (needed for the nudge) drops a leading space, so the gap
+     before the arrow is a margin instead. */
+  .links span {
+    display: inline-block;
+    margin-left: 0.2em;
+    transition: transform 200ms ease;
+  }
+
+  .links a:hover span {
+    transform: translate(2px, -2px);
+  }
+
+  /* ---------- Site details ---------- */
+  .meta {
+    margin: var(--space-6) 0 0;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
     color: var(--color-muted);
     font-size: var(--text-sm);
+  }
+
+  .meta a {
+    color: inherit;
+  }
+
+  .meta a:hover {
+    color: var(--color-accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .email,
+    .copy,
+    .links a,
+    .links span {
+      transition: none;
+    }
   }
 </style>

@@ -9,10 +9,15 @@
   The script only stores the mouse position in CSS custom properties
   (--x, --y, --glow-y). All the drawing is plain CSS.
   It only runs on devices with a real mouse, so touch screens skip it.
+
+  Touch screens get their own background instead:
+  3. Ambient glow: two large, soft accent-colored glows that drift and
+     change shape slowly behind the page. Pure CSS, no script.
 */
 ---
 
 <div class="spotlight" aria-hidden="true"></div>
+<div class="ambient" aria-hidden="true"></div>
 
 <script>
   const hasMouse = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
@@ -75,5 +80,85 @@
       var(--color-glow) 12%,
       transparent 100%
     );
+  }
+
+  /* ---------- Ambient glow (touch screens) ---------- */
+  .ambient {
+    display: none;
+  }
+
+  /* Every device that doesn't get the cursor spotlight: phones, tablets. */
+  @media not ((hover: hover) and (pointer: fine)) {
+    .ambient {
+      display: block;
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    /* Each glow is a radial gradient that fades to transparent at its edge,
+       so it's soft without a blur filter (blur is slow on phones). */
+    .ambient::before,
+    .ambient::after {
+      content: '';
+      position: absolute;
+      width: 110vmax;
+      height: 110vmax;
+      background: radial-gradient(
+        circle closest-side,
+        var(--color-ambient) 0%,
+        var(--color-ambient) 25%,
+        transparent 100%
+      );
+    }
+
+    .ambient::before {
+      top: -45vmax;
+      left: -55vmax;
+    }
+
+    .ambient::after {
+      bottom: -50vmax;
+      right: -55vmax;
+    }
+
+    /* The motion only uses transform, which the browser hands to the GPU,
+       so it doesn't slow scrolling. Unequal X/Y scale squashes and stretches
+       each glow, and where the two overlap the shape appears to morph. */
+    @media (prefers-reduced-motion: no-preference) {
+      .ambient::before {
+        animation: drift-a 18s ease-in-out infinite alternate;
+      }
+
+      .ambient::after {
+        animation: drift-b 23s ease-in-out infinite alternate;
+      }
+    }
+  }
+
+  @keyframes drift-a {
+    from {
+      transform: translate(0, 0) scale(1, 1);
+    }
+    50% {
+      transform: translate(30vw, 25vh) scale(1.2, 0.85);
+    }
+    to {
+      transform: translate(10vw, 55vh) scale(0.9, 1.15);
+    }
+  }
+
+  @keyframes drift-b {
+    from {
+      transform: translate(0, 0) scale(1, 1);
+    }
+    50% {
+      transform: translate(-35vw, -30vh) scale(0.85, 1.2);
+    }
+    to {
+      transform: translate(-10vw, -60vh) scale(1.15, 0.9);
+    }
   }
 </style>

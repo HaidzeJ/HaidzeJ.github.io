@@ -11,14 +11,28 @@ import Spotlight from '../components/Spotlight.astro';
 interface Props {
   title: string;
   description: string;
+  // Keeps a page out of search results (used by the 404 page).
+  noindex?: boolean;
 }
 
-const { title, description } = Astro.props;
+const { title, description, noindex = false } = Astro.props;
 
 // Full absolute URL of this page, built from `site` in astro.config.mjs.
 // Search engines and link previews need absolute URLs.
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 const ogImageUrl = new URL('/og-image.png', Astro.site);
+
+// Structured data (JSON-LD): tells search engines in a machine-readable way
+// who this site is about, and links the profiles that belong to the same person.
+const person = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Jeremiah Haidze',
+  jobTitle: 'Front-end developer',
+  url: Astro.site?.href,
+  email: 'mailto:haidzejeremiah@gmail.com',
+  sameAs: ['https://www.linkedin.com/in/jhaidze', 'https://github.com/HaidzeJ'],
+};
 ---
 
 <!doctype html>
@@ -28,13 +42,15 @@ const ogImageUrl = new URL('/og-image.png', Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonicalUrl} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonicalUrl} />}
 
     <link rel="sitemap" href="/sitemap-index.xml" />
 
     <!-- Open Graph: controls the preview card when the link is shared
          on LinkedIn, Slack, etc. 1200x630 is the size those sites expect. -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Jeremiah Haidze" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
@@ -49,9 +65,13 @@ const ogImageUrl = new URL('/og-image.png', Astro.site);
     <meta name="theme-color" content="#fbfaf8" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#141413" media="(prefers-color-scheme: dark)" />
 
+    <!-- .ico first for old browsers; browsers that support SVG pick the SVG.
+         The 180px PNG is the icon iOS uses for "Add to Home Screen". -->
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="generator" content={Astro.generator} />
+    <script type="application/ld+json" set:html={JSON.stringify(person)} />
   </head>
   <body>
     <!-- First focusable element: lets keyboard users jump past the nav. -->
@@ -108,8 +128,10 @@ const ogImageUrl = new URL('/og-image.png', Astro.site);
       gap: var(--space-6);
     }
 
+    /* Same top padding as the sticky header, so the first line of the
+       About text lines up with the name. */
     .content {
-      padding-top: var(--space-6);
+      padding-top: var(--space-7);
     }
   }
 </style>
