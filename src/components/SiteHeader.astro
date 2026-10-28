@@ -4,6 +4,8 @@
   section nav, social links) while the content scrolls on the right.
   On phones it's a normal header at the top.
 */
+import { profile } from '../data/profile';
+
 const links = [
   // Root-relative ("/#about") so the links also work from the 404 page.
   { href: '/#about', label: 'About' },
@@ -14,8 +16,8 @@ const links = [
 
 <header class="site-header">
   <div>
-    <h1 class="name"><a href="/">Jeremiah Haidze</a></h1>
-    <p class="role">Front-end developer</p>
+    <h1 class="name"><a href="/">{profile.name}</a></h1>
+    <p class="role">{profile.role}</p>
     <p class="tagline">I build fast, accessible websites and web apps.</p>
 
     <nav aria-label="Sections">
@@ -28,39 +30,63 @@ const links = [
   </div>
 
   <ul class="social">
-    <li><a href="https://github.com/HaidzeJ">GitHub</a></li>
-    <li><a href="https://www.linkedin.com/in/jhaidze">LinkedIn</a></li>
+    <li><a href={profile.github}>GitHub</a></li>
+    <li><a href={profile.linkedin}>LinkedIn</a></li>
   </ul>
 </header>
 
 <script>
   /*
     Scroll spy: marks the nav link for the section currently on screen.
-    IntersectionObserver tells us when a section crosses the middle band of
-    the viewport, without checking the scroll position on every scroll event.
+    The current section is the last one whose top has scrolled past a line
+    200px down the viewport. The line has to sit above the Changelog heading
+    after the About link jumps to About (256px apart at the narrowest), or
+    clicking About would light up Changelog. About starts above the line and
+    Contact (short, at the very bottom) can never reach it, so two edge
+    cases: nothing past the line yet = the first section, and scrolled to
+    the bottom of the page = the last section.
   */
   const navLinks = [...document.querySelectorAll<HTMLAnchorElement>('.site-header nav a')];
+  const sections = navLinks
+    .map((link) => document.querySelector<HTMLElement>(link.hash))
+    .filter((section) => section !== null);
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        for (const link of navLinks) {
-          const isCurrent = link.hash === `#${entry.target.id}`;
-          // aria-current tells screen readers which link matches what's on screen.
-          if (isCurrent) link.setAttribute('aria-current', 'location');
-          else link.removeAttribute('aria-current');
-        }
+  function updateCurrent() {
+    const line = 200;
+    const atBottom =
+      window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+
+    let current = sections[0];
+    if (atBottom) {
+      current = sections[sections.length - 1];
+    } else {
+      for (const section of sections) {
+        if (section.getBoundingClientRect().top <= line) current = section;
       }
-    },
-    // Only the band from 40% to 60% of the viewport height counts.
-    { rootMargin: '-40% 0px -60% 0px' },
-  );
+    }
 
-  for (const link of navLinks) {
-    const section = document.querySelector(link.hash);
-    if (section) observer.observe(section);
+    for (const link of navLinks) {
+      // aria-current tells screen readers which link matches what's on screen.
+      if (link.hash === `#${current?.id}`) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    }
   }
+
+  // Scroll events fire many times per frame; requestAnimationFrame runs the
+  // check at most once per frame so scrolling stays smooth.
+  let queued = false;
+  function queueUpdate() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      updateCurrent();
+    });
+  }
+
+  window.addEventListener('scroll', queueUpdate, { passive: true });
+  window.addEventListener('resize', queueUpdate);
+  updateCurrent();
 </script>
 
 <style>
@@ -173,12 +199,6 @@ const links = [
     nav {
       display: block;
       margin-top: var(--space-6);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .line {
-      transition: none;
     }
   }
 </style>

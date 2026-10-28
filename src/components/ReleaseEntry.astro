@@ -1,7 +1,7 @@
 ---
 /*
   One changelog entry, in one of two shapes:
-  - featured: a card with an image (or placeholder), summary, stack chips
+  - featured: a card with an image, summary, stack chips
     and a "Details" toggle for Shipped / My role / Notes.
   - compact: a single row (version, title, dates) with a chevron toggle.
   Both are an <article> with an <h3>, so screen-reader users can jump
@@ -15,10 +15,13 @@ import type { Release } from '../data/releases';
 
 interface Props {
   release: Release;
+  // True for the first entry only: its image is on screen at load, so it
+  // skips lazy loading and downloads first (it's the page's LCP image).
+  priority?: boolean;
 }
 
-const { version, title, dates, summary, stack, featured, images, placeholder, link, shipped, role, notes } =
-  Astro.props.release;
+const { release, priority = false } = Astro.props;
+const { version, title, dates, summary, stack, featured, images, link, shipped, role, notes } = release;
 
 const hasDetails = Boolean(shipped || role || notes);
 ---
@@ -27,19 +30,19 @@ const hasDetails = Boolean(shipped || role || notes);
   <article class="release featured">
     {images && (
       <div class:list={['media', { grid: images.length > 1 }]}>
+        {/* sizes tells the browser how wide the image will show, so it can
+            pick the smallest file from widths. Below 64rem a single image is
+            about 75-85% of the screen (page margins + card padding), hence
+            80vw rather than 100vw. Other images lazy-load by default. */}
         {images.map((image) => (
           <Image
             src={image.src}
             alt={image.alt}
             widths={images.length > 1 ? [400, 640] : [640, 960, 1280]}
-            sizes={images.length > 1 ? '(min-width: 64rem) 20rem, 50vw' : '(min-width: 64rem) 40rem, 100vw'}
+            sizes={images.length > 1 ? '(min-width: 64rem) 20rem, 50vw' : '(min-width: 64rem) 40rem, 80vw'}
+            priority={priority}
           />
         ))}
-      </div>
-    )}
-    {!images && placeholder && (
-      <div class="media placeholder" aria-hidden="true">
-        <span>{placeholder}</span>
       </div>
     )}
 
@@ -55,7 +58,7 @@ const hasDetails = Boolean(shipped || role || notes);
 
     <p class="summary">{summary}</p>
     <ul class="stack" aria-label="Stack">{stack.map((tool) => <li>{tool}</li>)}</ul>
-    {link && <a class="out-link" href={link.href}>{link.label}<span aria-hidden="true">↗</span></a>}
+    {link && <a class="out-link" href={link.href}>{link.label}<span class="arrow" aria-hidden="true">↗</span></a>}
 
     {hasDetails && (
       <details>
@@ -100,9 +103,15 @@ const hasDetails = Boolean(shipped || role || notes);
       <summary><span class="visually-hidden">Details: {title}</span></summary>
       <p class="summary">{summary}</p>
       <ul class="stack" aria-label="Stack">{stack.map((tool) => <li>{tool}</li>)}</ul>
-      {link && <a class="out-link" href={link.href}>{link.label}<span aria-hidden="true">↗</span></a>}
-      {(role || notes) && (
+      {link && <a class="out-link" href={link.href}>{link.label}<span class="arrow" aria-hidden="true">↗</span></a>}
+      {hasDetails && (
         <dl>
+          {shipped && (
+            <>
+              <dt>Shipped</dt>
+              <dd><ul>{shipped.map((item) => <li>{item}</li>)}</ul></dd>
+            </>
+          )}
           {role && (
             <>
               <dt>My role</dt>
@@ -280,29 +289,6 @@ const hasDetails = Boolean(shipped || role || notes);
     background: var(--color-border);
   }
 
-  /* Placeholder: a striped box with a monospace label. */
-  .placeholder {
-    display: grid;
-    place-items: center;
-    background:
-      repeating-linear-gradient(
-        -45deg,
-        transparent 0 12px,
-        var(--color-glow) 12px 24px
-      ),
-      var(--color-surface);
-  }
-
-  .placeholder span {
-    padding: var(--space-1) var(--space-3);
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    color: var(--color-muted);
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: 999px;
-  }
-
   /* ---------- Heading ---------- */
   /* Phones: the tag sits on its own line above the title, like a label.
      A title that wraps to two lines next to a tag never lines up cleanly,
@@ -428,18 +414,6 @@ const hasDetails = Boolean(shipped || role || notes);
     text-decoration: underline;
   }
 
-  /* inline-block (needed for the nudge) drops a leading space, so the gap
-     before the arrow is a margin instead. */
-  .out-link span {
-    display: inline-block;
-    margin-left: 0.2em;
-    transition: transform 200ms ease;
-  }
-
-  .out-link:hover span {
-    transform: translate(2px, -2px);
-  }
-
   /* ---------- Details toggle ---------- */
   summary {
     cursor: pointer;
@@ -548,16 +522,10 @@ const hasDetails = Boolean(shipped || role || notes);
     padding-left: 1.2em;
   }
 
+  /* The global reduced-motion rule (global.css) already stops every
+     transition. The image zoom is turned off too, since without its
+     transition it would snap rather than glide. */
   @media (prefers-reduced-motion: reduce) {
-    .release,
-    .release::before,
-    .media img,
-    .version,
-    .out-link span,
-    summary::after {
-      transition: none;
-    }
-
     .release:hover .media img {
       transform: none;
     }

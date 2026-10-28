@@ -7,6 +7,7 @@ import '../styles/global.css';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import Spotlight from '../components/Spotlight.astro';
+import { profile } from '../data/profile';
 
 interface Props {
   title: string;
@@ -27,11 +28,11 @@ const ogImageUrl = new URL('/og-image.png', Astro.site);
 const person = {
   '@context': 'https://schema.org',
   '@type': 'Person',
-  name: 'Jeremiah Haidze',
-  jobTitle: 'Front-end developer',
+  name: profile.name,
+  jobTitle: profile.role,
   url: Astro.site?.href,
-  email: 'mailto:haidzejeremiah@gmail.com',
-  sameAs: ['https://www.linkedin.com/in/jhaidze', 'https://github.com/HaidzeJ'],
+  email: `mailto:${profile.email}`,
+  sameAs: [profile.linkedin, profile.github],
 };
 ---
 
@@ -49,7 +50,7 @@ const person = {
     <!-- Open Graph: controls the preview card when the link is shared
          on LinkedIn, Slack, etc. 1200x630 is the size those sites expect. -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Jeremiah Haidze" />
+    <meta property="og:site_name" content={profile.name} />
     <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />

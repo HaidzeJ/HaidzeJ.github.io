@@ -21,8 +21,8 @@ import { releases } from '../data/releases';
   <section id="changelog" aria-labelledby="changelog-heading">
     <h2 id="changelog-heading" class="section-label">Changelog</h2>
     <ol class="timeline">
-      {releases.map((release) => (
-        <li><ReleaseEntry release={release} /></li>
+      {releases.map((release, index) => (
+        <li><ReleaseEntry release={release} priority={index === 0} /></li>
       ))}
     </ol>
   </section>
@@ -93,13 +93,6 @@ import { releases } from '../data/releases';
   @media (hover: hover) and (pointer: fine) {
     .timeline:has(> li:hover) > li:not(:hover) {
       opacity: 0.55;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .timeline::after,
-    .timeline > li {
-      transition: none;
     }
   }
 </style>

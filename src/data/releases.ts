@@ -1,9 +1,8 @@
 /*
   Changelog entries, newest first. Each object becomes one <ReleaseEntry> on the page.
-  DRAFT COPY: built from portfolio-assets/CONTENT_OUTLINE.md and Jeremiah's answers.
-  Review every entry before pushing to master (a push deploys the site).
+  A push to master deploys the site, so review copy changes before pushing.
 
-  featured: true  -> large card with an image (or a placeholder) and a summary.
+  featured: true  -> large card with an image and a summary.
   featured: false -> compact one-line row that expands on click.
   shipped / role / notes always sit behind a "Details" toggle.
 */
@@ -11,7 +10,7 @@ import type { ImageMetadata } from 'astro';
 
 // Images live in src/assets so Astro can resize them and convert them to
 // modern formats at build time. Lull images are Wayback Machine captures and
-// game images come from Jeremiah's Adobe Portfolio (placeholders for now).
+// game images come from Jeremiah's Adobe Portfolio.
 import thisSite from '../assets/releases/this-site.jpg';
 import ryzePortal from '../assets/releases/ryze-portal.jpg';
 import lullHomeEvergreen from '../assets/releases/lull-home-evergreen.jpg';
@@ -36,8 +35,6 @@ export interface Release {
   featured?: boolean;
   // One image shows full width; several show as a grid.
   images?: ReleaseImage[];
-  // Featured entries without an image show this label in a placeholder box.
-  placeholder?: string;
   // Optional outbound link, e.g. a credential or a project page.
   link?: { href: string; label: string };
   shipped?: string[];

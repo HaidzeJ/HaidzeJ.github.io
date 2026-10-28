@@ -4,8 +4,10 @@
   Top part: an invitation, the email as the main action, then profiles.
   Bottom line: details about the site itself, kept small and separate.
 */
+import { profile } from '../data/profile';
+
 const year = new Date().getFullYear();
-const email = 'haidzejeremiah@gmail.com';
+const { email } = profile;
 ---
 
 <footer class="site-footer" id="contact">
@@ -22,12 +24,12 @@ const email = 'haidzejeremiah@gmail.com';
   </div>
 
   <ul class="links">
-    <li><a href="https://www.linkedin.com/in/jhaidze">LinkedIn<span aria-hidden="true">↗</span></a></li>
-    <li><a href="https://github.com/HaidzeJ">GitHub<span aria-hidden="true">↗</span></a></li>
+    <li><a href={profile.linkedin}>LinkedIn<span class="arrow" aria-hidden="true">↗</span></a></li>
+    <li><a href={profile.github}>GitHub<span class="arrow" aria-hidden="true">↗</span></a></li>
   </ul>
 
   <p class="meta">
-    © {year} Jeremiah Haidze · <a href="https://github.com/HaidzeJ/HaidzeJ.github.io">View source</a>
+    © {year} {profile.name} · <a href={profile.repo}>View source</a>
   </p>
 </footer>
 
@@ -148,18 +150,6 @@ const email = 'haidzejeremiah@gmail.com';
     color: var(--color-accent);
   }
 
-  /* inline-block (needed for the nudge) drops a leading space, so the gap
-     before the arrow is a margin instead. */
-  .links span {
-    display: inline-block;
-    margin-left: 0.2em;
-    transition: transform 200ms ease;
-  }
-
-  .links a:hover span {
-    transform: translate(2px, -2px);
-  }
-
   /* ---------- Site details ---------- */
   .meta {
     margin: var(--space-6) 0 0;
@@ -175,14 +165,5 @@ const email = 'haidzejeremiah@gmail.com';
 
   .meta a:hover {
     color: var(--color-accent);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .email,
-    .copy,
-    .links a,
-    .links span {
-      transition: none;
-    }
   }
 </style>

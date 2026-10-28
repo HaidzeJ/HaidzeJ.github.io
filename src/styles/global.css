@@ -111,6 +111,32 @@ code {
   }
 }
 
+/* Visitors who ask their OS to reduce motion get no transitions or
+   animations anywhere. One rule here covers every component, including
+   ones added later, so components don't each need their own opt-out.
+   !important so it wins over the components' own transition rules. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Small ↗ arrow after an outbound link. It nudges up and to the right
+   when the link is hovered. inline-block (needed for the nudge) drops a
+   leading space, so the gap before the arrow is a margin instead. */
+.arrow {
+  display: inline-block;
+  margin-left: 0.2em;
+  transition: transform 200ms ease;
+}
+
+a:hover .arrow {
+  transform: translate(2px, -2px);
+}
+
 /* Centered content column used by every section. */
 .container {
   width: min(100% - 2 * var(--gutter), var(--content-width));
